@@ -107,7 +107,6 @@ def datasets(
         'test': test_set
     }, num_classes
 
-
 def loaders(
         dataset,
         path,
@@ -118,20 +117,18 @@ def loaders(
         use_validation=True,
         val_size=5000,
         shuffle_train=True, 
-        class_subset=False):
+        class_subset=None):
 
     ds_dict, num_classes = datasets(
         dataset, path, transform_train, transform_test, use_validation=use_validation, val_size=val_size)
 
-    if class_subset:
-        # Define the class indices you need
-        class_idx_need = [0, 1, 2, 3, 4, 5]  # Update this list as needed
-
+    if class_subset is not None:
         # Apply filtering
-        ds_dict['train'] = FilteredDataset(ds_dict['train'], class_idx_need)
-        ds_dict['test'] = FilteredDataset(ds_dict['test'], class_idx_need)
+        print(class_subset)
+        ds_dict['train'] = FilteredDataset(ds_dict['train'], class_subset)
+        ds_dict['test'] = FilteredDataset(ds_dict['test'], class_subset)
         if ds_dict.get('val'):
-            ds_dict['val'] = FilteredDataset(ds_dict['val'], class_idx_need)
+            ds_dict['val'] = FilteredDataset(ds_dict['val'], class_subset)
 
     # Create DataLoaders
     train_loader = torch.utils.data.DataLoader(

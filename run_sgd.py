@@ -77,6 +77,7 @@ parser.add_argument('--seed', type=int, default=1, metavar='S', help='random see
 
 parser.add_argument("--removeupdate", action='store_true',
                     help='do not update batch norm parameters at testing')
+parser.add_argument("--class_subset", type=str, default=None, help='subset of classes to use') 
 
 
 if __name__ == '__main__':
@@ -105,7 +106,7 @@ if __name__ == '__main__':
     args.dir += '/seed='+str(args.seed)+'_lr=' + str(args.lr_init) + thing + '_mom=' + str(args.momentum) + '_wd=' + str(
         args.wd) + '_batchsize='+str(args.batch_size) + '_numepochs=' +str(args.epochs) + '/'
 
-
+    class_subset = [int(item) for item in args.class_subset.split(',')]
     if args.no_schedule and args.step_schedule:
         raise ValueError("Both no_schedule and step_schedule are turned on. Quitting due to ambiguity.")
 
@@ -169,7 +170,7 @@ if __name__ == '__main__':
             transform_train=transform_train,
             transform_test=transform_test,
             use_validation=not args.use_test,
-            class_subset=True
+            class_subset=class_subset
         )
     else:
         loaders, num_classes = data.loaders(
@@ -182,7 +183,7 @@ if __name__ == '__main__':
             transform_train=model_cfg.transform_train,
             transform_test=model_cfg.transform_test,
             use_validation=not args.use_test,
-            class_subset=True
+            class_subset=class_subset
         )
 
     print('Preparing model')
