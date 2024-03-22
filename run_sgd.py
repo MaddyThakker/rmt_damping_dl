@@ -387,10 +387,10 @@ if __name__ == '__main__':
             pass
         else:
             utils.bn_update(loaders['train'], model)
-        test_res = utils.eval(loaders['test'], model, criterion)
+        test_res = utils.eval(loaders['test'], model, criterion, cuda=cuda)
 
         if epoch == 0 or epoch % args.eval_freq == args.eval_freq - 1 or epoch == args.epochs - 1:
-            test_res = utils.eval(loaders['test'], model, criterion)
+            test_res = utils.eval(loaders['test'], model, criterion, cuda=cuda)
         else:
             test_res = {'loss': None, 'accuracy': None, 'top5_accuracy': None}
 
@@ -403,8 +403,8 @@ if __name__ == '__main__':
             if epoch == 0 or epoch % args.eval_freq == args.eval_freq - 1 or epoch == args.epochs - 1:
                 swag_model.set_swa()
                 utils.bn_update(loaders['train'], swag_model)
-                train_res_swag = utils.eval(loaders['train'], swag_model, criterion, optimizer)
-                swag_res = utils.eval(loaders['test'], swag_model, criterion)
+                train_res_swag = utils.eval(loaders['train'], swag_model, criterion, optimizer, cuda=cuda)
+                swag_res = utils.eval(loaders['test'], swag_model, criterion, cuda=cuda)
 
             else:
                 swag_res = {'loss': None, 'accuracy': None, "top5_accuracy": None}
