@@ -83,7 +83,7 @@ parser.add_argument("--class_subset", type=str, default=None, help='subset of cl
 if __name__ == '__main__':
 
     args = parser.parse_args()
-
+    cuda = torch.cuda.is_available()
     # convert types
     try:
         args.swag_c_epochs = int(args.swag_c_epochs)
@@ -129,15 +129,6 @@ if __name__ == '__main__':
     print('Using model %s' % args.model)
     model_cfg = getattr(models, args.model)
 
-    # loaders, num_classes = data.loaders(
-    #     args.dataset,
-    #     args.data_path,
-    #     args.batch_size,
-    #     args.num_workers,
-    #     model_cfg.transform_train,
-    #     model_cfg.transform_test,
-    #     use_validation=not args.use_test,
-    # )
     if args.dataset == 'ImageFolder':
         normalize = transforms.Normalize(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
@@ -161,8 +152,6 @@ if __name__ == '__main__':
             ]
         )
         loaders, num_classes = data.loaders(
-            # train_subset=None,
-            # train_subset_seed=None,
             dataset=args.dataset,
             path=args.data_path,
             batch_size=args.batch_size,
@@ -174,8 +163,6 @@ if __name__ == '__main__':
         )
     else:
         loaders, num_classes = data.loaders(
-            # train_subset=None,
-            # train_subset_seed=None,
             dataset=args.dataset,
             path=args.data_path,
             batch_size=args.batch_size,
@@ -189,15 +176,9 @@ if __name__ == '__main__':
     print('Preparing model')
     if args.dataset == 'ImageFolder' or args.model == 'resnet18':
         model = model_cfg(pretrained=False, num_classes=num_classes)
-        #model.to(args.device)
     else:
         print(*model_cfg.args, dict(**model_cfg.kwargs))
         model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
-        #model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
-    # if torch.cuda.device_count() > 1:
-    #     print("Multi-GPU: Using " + str(torch.cuda.device_count()) + " GPUs for training.")
-    #     import torch.nn as nn
-    #     model = nn.DataParallel(model)
     model.to(args.device)
     if args.dataset == 'ImageFolder':
         if args.swag:
@@ -396,10 +377,10 @@ if __name__ == '__main__':
 
         if args.swag and args.swag_c_epochs < 1 and epoch >= args.swag_start:
             # If mode collection is more frequent than once per epoch
-            train_res = utils.train_epoch(loaders['train'], model, criterion, optimizer, verbose=args.verbose,
+            train_res = utils.train_epoch(loaders['train'], model, criterion, optimizer, cuda=cuda, verbose=args.verbose,
                                         swag_model=swag_model, swag_batch_c=int(len(loaders['train']) * args.swag_c_epochs))
         else:
-            train_res = utils.train_epoch(loaders['train'], model, criterion, optimizer, verbose=args.verbose)
+            train_res = utils.train_epoch(loaders['train'], model, criterion, optimizer, cuda=cuda, verbose=args.verbose)
 
         # update batch norm parameters before testing
         if args.removeupdate:
@@ -428,13 +409,6 @@ if __name__ == '__main__':
             else:
                 swag_res = {'loss': None, 'accuracy': None, "top5_accuracy": None}
                 train_res_swag = {'loss': None, 'accuracy': None}
-            # utils.save_checkpoint(
-            #     args.dir,
-            #     epoch + 1,
-            #     epoch=epoch + 1,
-            #     state_dict=model.state_dict(),
-            #     optimizer=optimizer.state_dict()
-            # )
 
         else:
             train_res_swag = {'loss': None, 'accuracy': None}

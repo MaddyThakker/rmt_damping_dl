@@ -212,9 +212,7 @@ def train_epoch(loader, model, criterion, optimizer, cuda=False, verbose=False, 
 
     for i, (input, target) in enumerate(loader):
         if cuda:
-            #input = input.cuda(non_blocking=True)
             input = input.cuda(non_blocking=True)
-            #target = target.cuda(non_blocking=True)
             target = target.cuda(non_blocking=True)
 
         loss, output, stats = criterion(model, input, target)
